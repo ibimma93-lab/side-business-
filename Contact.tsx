@@ -6,16 +6,26 @@ import { motion } from 'motion/react';
 export default function Contact() {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStatus('submitting');
-    
-    // Simulate form submission
-    setTimeout(() => {
-      setStatus('success');
-      // In a real app, we would send the data here
-    }, 1500);
-  };
+const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setStatus('submitting');
+
+  const form = e.currentTarget;
+  const formData = new FormData(form);
+
+  try {
+    await fetch("/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(formData as any).toString(),
+    });
+
+    setStatus("success");
+    form.reset();
+  } catch (error) {
+    setStatus("error");
+  }
+};
 
   return (
     <section id="contact" className="py-24 px-4 md:px-12 relative">
@@ -67,18 +77,28 @@ export default function Contact() {
             </button>
           </motion.div>
         ) : (
-          <motion.form 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-            name="contact" 
-            method="post" 
-            onSubmit={handleSubmit} 
-            className="max-w-xl mx-auto space-y-6 text-left bg-white/40 backdrop-blur-md border border-white/50 p-6 md:p-10 rounded-3xl shadow-xl"
-          >
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+        <motion.form 
+  initial={{ opacity: 0, y: 20 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ delay: 0.4, duration: 0.8 }}
+  name="contact"
+  method="POST"
+  data-netlify="true"
+  netlify-honeypot="bot-field"
+  onSubmit={handleSubmit}
+  className="max-w-xl mx-auto space-y-6 text-left bg-white/40 backdrop-blur-md border border-white/50 p-6 md:p-10 rounded-3xl shadow-xl"
+>
+  <input type="hidden" name="form-name" value="contact" />
+
+ <p hidden>
+  <label>
+    Don’t fill this out if you're human: <input name="bot-field" />
+  </label>
+</p>
+
+<div>
+  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
               <input 
                 type="text" 
                 name="name" 
